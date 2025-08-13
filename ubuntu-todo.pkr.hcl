@@ -68,7 +68,7 @@ build {
       "nvm use 24",
       # Clone the ToDo app repo
       "git clone https://github.com/Karthikbhatkarkada/todo-test-app.git /home/ubuntu/todo-app",
-      "cd /home/ubuntu/todo-app && npm install",
+      "cd /home/ubuntu/todo-app/app && npm install",
     ]
   }
 }
