@@ -7,6 +7,26 @@ packer {
   }
 }
 
+variable "tenancy_ocid" {
+  type = string
+}
+
+variable "user_ocid" {
+  type = string
+}
+
+variable "fingerprint" {
+  type = string
+}
+
+variable "key_file" {
+  type = string
+}
+
+variable "availability_domain" {
+  type = string
+}
+
 variable "compartment_ocid" {
   type = string
 }
@@ -16,30 +36,39 @@ variable "subnet_ocid" {
 }
 
 source "oracle-oci" "ubuntu_todo" {
-  # Automatically reads credentials from /var/lib/jenkins/.oci/config
-  config_file_profile = "DEFAULT"
-  config_file         = "/var/lib/jenkins/.oci/config"
-
+  tenancy_ocid        = var.tenancy_ocid
+  user_ocid           = var.user_ocid
+  fingerprint         = var.fingerprint
+  key_file            = var.key_file
+  availability_domain = var.availability_domain
   compartment_ocid    = var.compartment_ocid
-  availability_domain = "yFYg:AP-HYDERABAD-1-AD-1"
   region              = "ap-hyderabad-1"
-  base_image_ocid     = "ocid1.image.oc1.ap-hyderabad-1.aaaaaaaaca7s2s5pgnooszcjysi7pknrimayqjds6knvjascphe2r767m6vq"
-  shape               = "VM.Standard.E2.1.Micro"
   subnet_ocid         = var.subnet_ocid
+
+  base_image_ocid     = "ocid1.image.oc1.ap-hyderabad-1.aaaaaaaafs7imfvcicboqisaisiz5bbpuzbg5gicwjwvyhnhsvdaowuc3w4q" # Replace with latest Ubuntu OCID
+  shape               = "VM.Standard.E2.1.Micro"
   ssh_username        = "ubuntu"
 }
 
+# ---------------------------
+# Build Block
+# ---------------------------
 build {
-  name    = "ubuntu-todo-app"
   sources = ["source.oracle-oci.ubuntu_todo"]
 
   provisioner "shell" {
     inline = [
-      "sudo apt update",
-      "sudo apt install -y nodejs npm",
-      "cd /home/ubuntu/todo-app",
-      "npm install",
-      "npm run build"
+      "sudo apt-get update -y",
+      "sudo apt-get install -y curl git",
+      # Install NVM, Node.js, and npm
+      "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash",
+      "export NVM_DIR=\"$HOME/.nvm\"",
+      "[ -s \"$NVM_DIR/nvm.sh\" ] && \\. \"$NVM_DIR/nvm.sh\"",
+      "nvm install 24",
+      "nvm use 24",
+      # Clone the ToDo app repo
+      "git clone https://github.com/Karthikbhatkarkada/todo-test-app.git /home/ubuntu/todo-app",
+      "cd /home/ubuntu/todo-app && npm install",
     ]
   }
 }
