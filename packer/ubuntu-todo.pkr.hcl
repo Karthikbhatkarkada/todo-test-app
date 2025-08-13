@@ -1,6 +1,6 @@
 packer {
   required_plugins {
-    oci = {
+    oracle-oci = {
       version = ">= 1.0.0"
       source  = "github.com/hashicorp/oci"
     }
@@ -15,7 +15,7 @@ variable "subnet_ocid" {
   type = string
 }
 
-source "oci" "ubuntu_todo" {
+source "oracle-oci" "ubuntu_todo" {
   # Automatically reads credentials from /var/lib/jenkins/.oci/config
   config_file_profile = "DEFAULT"
   config_file         = "/var/lib/jenkins/.oci/config"
@@ -31,7 +31,7 @@ source "oci" "ubuntu_todo" {
 
 build {
   name    = "ubuntu-todo-app"
-  sources = ["source.oci.ubuntu_todo"]
+  sources = ["source.oracle-oci.ubuntu_todo"]
 
   provisioner "shell" {
     inline = [
