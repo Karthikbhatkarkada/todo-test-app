@@ -1,52 +1,45 @@
 packer {
   required_plugins {
-    oracle = {
+    oci = {
       version = ">= 1.0.0"
-      source  = "github.com/hashicorp/oracle"
+      source  = "github.com/hashicorp/oci"
     }
   }
 }
 
-variable "compartment_ocid" {}
-variable "subnet_ocid" {}
-variable "ssh_username" {
-  default = "ubuntu"
+variable "compartment_ocid" {
+  type = string
 }
-variable "availability_domain" {}
-variable "key_file" {}
-variable "fingerprint" {}
-variable "tenancy_ocid" {}
-variable "user_ocid" {}
 
-source "oracle-oci" "ubuntu" {
+variable "subnet_ocid" {
+  type = string
+}
+
+source "oci" "ubuntu_todo" {
+  # Automatically reads credentials from /var/lib/jenkins/.oci/config
+  config_file_profile = "DEFAULT"
+  config_file         = "/var/lib/jenkins/.oci/config"
+
   compartment_ocid    = var.compartment_ocid
-  availability_domain = var.availability_domain
+  availability_domain = "yFYg:AP-HYDERABAD-1-AD-1"
+  region              = "ap-hyderabad-1"
   base_image_ocid     = "ocid1.image.oc1.ap-hyderabad-1.aaaaaaaaca7s2s5pgnooszcjysi7pknrimayqjds6knvjascphe2r767m6vq"
   shape               = "VM.Standard.E2.1.Micro"
   subnet_ocid         = var.subnet_ocid
-  ssh_username        = var.ssh_username
-
-  # OCI API authentication
-  key_file     = var.key_file
-  fingerprint  = var.fingerprint
-  tenancy_ocid = var.tenancy_ocid
-  user_ocid    = var.user_ocid
+  ssh_username        = "ubuntu"
 }
 
 build {
-  name    = "ubuntu-todo-image"
-  sources = ["source.oracle-oci.ubuntu"]
+  name    = "ubuntu-todo-app"
+  sources = ["source.oci.ubuntu_todo"]
 
   provisioner "shell" {
-    script = "scripts/install_dependencies.sh"
-  }
-
-  provisioner "file" {
-    source      = "../app/"
-    destination = "/home/ubuntu/todo-app"
-  }
-
-  provisioner "shell" {
-    script = "scripts/install_app.sh"
+    inline = [
+      "sudo apt update",
+      "sudo apt install -y nodejs npm",
+      "cd /home/ubuntu/todo-app",
+      "npm install",
+      "npm run build"
+    ]
   }
 }
